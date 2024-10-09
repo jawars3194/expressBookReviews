@@ -58,18 +58,33 @@ regd_users.put("/auth/review/:isbn", (req, res) => {
     const requestedIsbn = req.params.isbn;
     const reviewText = req.query.review;
     const username = req.session.authorization.username; // Assuming username is stored in the session
+    console.log("isbn" , requestedIsbn);
 
     if (!username) {
       return res.status(401).json({ message: "Unauthorized" }); // Handle unauthorized access
     }
 
     const book = books[requestedIsbn];
+    console.log("book" , book);
 
+    // if (book) {
+    //   book.reviews[username] = reviewText; // Add or modify review based on username      
+    
+    //   res.json({ message: "The review for the book with ISBN " + requestedIsbn + "added/updated successfully" });
+    // } else {
+    //   res.status(404).json({ message: "Book not found" }); // Handle book not found
+    // }
     if (book) {
-      book.reviews[username] = reviewText; // Add or modify review based on username
-      res.json({ message: "Review added/modified successfully" });
-    } else {
-      res.status(404).json({ message: "Book not found" }); // Handle book not found
+    let review = reviewText;
+
+        if (review) {
+            book.reviews[username] = review;
+        }
+
+        books[requestedIsbn] = book;
+        res.send(`Review for book with ISBN ${requestedIsbn} "added/updated successfully" .`);
+      } else {
+        res.send("Unable to find book!");
     }
   } catch (error) {
     console.error(error);
@@ -83,21 +98,27 @@ regd_users.delete("/auth/review/:isbn", (req, res) => {
   try {
     const requestedIsbn = req.params.isbn;
     const username = req.session.authorization.username; // Retrieve username from session
-
+    console.log("isbn to be deleted " , requestedIsbn);
     if (!username) {
       return res.status(401).json({ message: "Unauthorized" }); // Handle unauthorized access
     }
 
     const book = books[requestedIsbn];
+    console.log("book to be deleted " , book);
 
     if (book) {
-      if (book.reviews[username]) { // Check if a review exists for the user
-        delete book.reviews[username]; // Delete the user's review
-        res.json({ message: "Review deleted successfully" });
-      } else {
-        res.status(404).json({ message: "Review not found" }); // Handle review not found
-      }
-    } else {
+      // if (book.reviews[username]) { // Check if a review exists for the user
+      //   delete book.reviews[username]; // Delete the user's review
+      //   res.json({ message: "The reviews for the book with ISBN " + requestedIsbn + "by the " + username + "  deleted" });
+      // } else {
+      //   res.status(404).json({ message: "Review not found" }); // Handle review not found
+      // }
+      let username = req.session.username;
+      delete book.reviews[username];
+      books[requestedIsbn] = book;
+      res.send(`Review for book with ISBN ${requestedIsbn} deleted.`);
+      } 
+     else {
       res.status(404).json({ message: "Book not found" }); // Handle book not found
     }
   } catch (error) {
